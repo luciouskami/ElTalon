@@ -41,7 +41,7 @@ namespace ElTalon
             if (ObjectManager.Player.BaseSkinName != "Talon")
                 return;
 
-            Notifications.AddNotification("ElTalon by jQuery v1.4", 5);
+            Notifications.AddNotification("ElTalon by jQuery 2.0.0.0", 8000);
 
             #region Spell Data
 
@@ -108,32 +108,30 @@ namespace ElTalon
             var hydraClear = _menu.Item("HydraClear").GetValue<bool>();
             var tiamatClear = _menu.Item("TiamatClear").GetValue<bool>();
 
-            var Target = MinionManager.GetMinions(
-                Player.Position, 700, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth).FirstOrDefault();
+            var target = MinionManager.GetMinions(Player.Position, 700, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth).FirstOrDefault();
 
-
-            if (Player.ManaPercentage() >= _menu.Item("LaneClearMana").GetValue<Slider>().Value)
+            if (Player.ManaPercent >= _menu.Item("LaneClearMana").GetValue<Slider>().Value)
             {
-                if (qWaveClear && Q.IsReady() && Target.IsValidTarget())
+                if (qWaveClear && Q.IsReady() && target.IsValidTarget())
                 {
                     Q.Cast(Player);
                 }
 
-                if (wWaveClear && W.IsReady() && Target.IsValidTarget())
+                if (wWaveClear && W.IsReady() && target.IsValidTarget())
                 {
-                    W.Cast(Target);
+                    W.Cast(target);
                 }
 
                 if (eWaveClear && E.IsReady())
                 {
-                    E.CastOnUnit(Target);
+                    E.CastOnUnit(target);
                 }
             }
 
-            if (Items.CanUseItem(3074) && hydraClear && Target.IsValidTarget(Hydra.Range))
+            if (Items.CanUseItem(3074) && hydraClear && target.IsValidTarget(Hydra.Range))
                 Items.UseItem(3074);
 
-            if (Items.CanUseItem(3077) && tiamatClear && Target.IsValidTarget(Tiamat.Range))
+            if (Items.CanUseItem(3077) && tiamatClear && target.IsValidTarget(Tiamat.Range))
                 Items.UseItem(3077);
         }
 
@@ -147,10 +145,9 @@ namespace ElTalon
             var eWaveClear = _menu.Item("WaveClearE").GetValue<bool>();
             var hydraClear = _menu.Item("HydraClear").GetValue<bool>();
             var tiamatClear = _menu.Item("TiamatClear").GetValue<bool>();
-            var bestFarmLocation = MinionManager.GetBestCircularFarmLocation(MinionManager.GetMinions(W.Range, MinionTypes.All, MinionTeam.Enemy).Select(m => m.ServerPosition.To2D()).ToList(), W.Width, W.Range);
             var minions = MinionManager.GetMinions(Player.ServerPosition, W.Range, MinionTypes.All, MinionTeam.NotAlly);
 
-            if (Player.ManaPercentage() >= _menu.Item("LaneClearMana").GetValue<Slider>().Value)
+            if (Player.ManaPercent >= _menu.Item("LaneClearMana").GetValue<Slider>().Value)
             {
                 if (qWaveClear && Q.IsReady() && minion.IsValidTarget())
                 {
@@ -159,9 +156,13 @@ namespace ElTalon
 
                 if (wWaveClear && W.IsReady() && minion.IsValidTarget())
                 {
-                    W.Cast(bestFarmLocation.Position);
-                    //W.CastOnUnit(minion);
+                    if (minions.Count > 2)
+                    {
+                        var farmLocation = W.GetCircularFarmLocation(minions);
+                        W.Cast(farmLocation.Position);
+                    }
                 }
+
                 if (eWaveClear && E.IsReady())
                 {
                     E.CastOnUnit(minion);
@@ -193,7 +194,7 @@ namespace ElTalon
 
             foreach (var spell in SpellList.Where(y => y.IsReady()))
             {
-                if (Player.ManaPercentage() >= _menu.Item("HarassMana").GetValue<Slider>().Value)
+                if (Player.ManaPercent >= _menu.Item("HarassMana").GetValue<Slider>().Value)
                 {                             
                    if (spell.Slot == SpellSlot.Q && qHarass && Q.IsReady() && Player.Distance(target) <= Player.AttackRange && Q.IsReady())
                     {   
@@ -202,8 +203,7 @@ namespace ElTalon
 
                     if (spell.Slot == SpellSlot.W && wHarass && W.IsReady())
                     {
-                        W.CastIfHitchanceEquals(target, HitChance.High);
-                        //W.CastOnUnit(target);
+                        W.CastIfHitchanceEquals(target, HitChance.VeryHigh);
                     }
 
                     if (spell.Slot == SpellSlot.E && eHarass && E.IsReady())
@@ -218,7 +218,7 @@ namespace ElTalon
 
         #region itemusage
 
-        private static void fightItems()
+        private static void FightItems()
         {
             var target = TargetSelector.GetTarget(W.Range, TargetSelector.DamageType.Physical);
 
@@ -241,7 +241,6 @@ namespace ElTalon
                 case Orbwalking.OrbwalkingMode.Combo:
                     if (unit.IsMe && Q.IsReady() && target is Obj_AI_Hero)
                     {
-                        fightItems();
                         Q.Cast(); 
                         Orbwalking.ResetAutoAttackTimer();
                     }
@@ -259,55 +258,108 @@ namespace ElTalon
                 return;
             }
 
-            var wCombo = _menu.Item("WCombo").GetValue<bool>();
-            var eCombo = _menu.Item("ECombo").GetValue<bool>();
+            var useW = _menu.Item("WCombo").GetValue<bool>();
+            var useE = _menu.Item("ECombo").GetValue<bool>();
             var rCombo = _menu.Item("RCombo").GetValue<bool>();
             var onlyKill = _menu.Item("RWhenKill").GetValue<bool>();
             var smartUlt = _menu.Item("SmartUlt").GetValue<bool>();
-            var Youmuuitem = _menu.Item("UseYoumuu").GetValue<bool>();
+            var youmuuitem = _menu.Item("UseYoumuu").GetValue<bool>();
             var ultCount = _menu.Item("rcount").GetValue<Slider>().Value;
 
             var comboDamage = GetComboDamage(target);
             var getUltComboDamage = GetUltComboDamage(target);
-            var smarterult = betaDamage(target);
+           // var smarterult = BetaDamage(target);
 
-            foreach (var spell in SpellList.Where(x => x.IsReady()))
+
+            var ultType = _menu.Item("ElTalon.Combo.Mode").GetValue<StringList>().SelectedIndex;
+
+            switch (ultType)
             {
-                if (target != null && spell.Slot == SpellSlot.W && wCombo && W.IsReady())
-                {
-                    W.CastOnUnit(target);
-                }
+                case 0:
 
-                if (target != null && spell.Slot == SpellSlot.E && eCombo && E.IsReady())
-                {
-                    E.CastOnUnit(target);
-                }
+                    if (useW && W.IsReady())
+                    {
+                        W.Cast(target);
+                    }
 
-                if (target != null &&  onlyKill && E.IsReady() && rCombo && Q.IsReady() && ObjectManager.Get<Obj_AI_Hero>().Count(hero => hero.IsValidTarget(R.Range)) >= ultCount)
-                {
-                    if (comboDamage >= target.Health)
+                    FightItems();
+
+
+                    if (useE && E.IsReady())
+                    {
+                        E.Cast(target);
+                    }
+
+                    if (onlyKill && E.IsReady() && rCombo && Q.IsReady() && ObjectManager.Get<Obj_AI_Hero>().Count(aiHero => aiHero.IsValidTarget(R.Range)) >= ultCount)
+                    {
+                        if (comboDamage >= target.Health)
+                        {
+                            R.CastOnUnit(Player);
+                        }
+                    }
+
+                    if (onlyKill && R.IsReady() && smartUlt)
+                    {
+                        if (getUltComboDamage >= target.Health)
+                        {
+                            R.CastOnUnit(Player);
+                        }
+                    }
+
+                    if (!onlyKill && E.IsReady() && rCombo && Q.IsReady() && ObjectManager.Get<Obj_AI_Hero>().Count(aiHero => aiHero.IsValidTarget(R.Range)) >= ultCount)
                     {
                         R.CastOnUnit(Player);
                     }
-                }
 
-                if (target != null && onlyKill && R.IsReady() && smartUlt)
-                {
-                    if (getUltComboDamage >= target.Health)
+
+                    break;
+
+                //R->E->W->Q
+                case 1:
+
+                    if (R.IsReady() && R.IsInRange(target))
                     {
                         R.CastOnUnit(Player);
                     }
-                }
 
-                if (target != null && !onlyKill && E.IsReady() && rCombo && Q.IsReady() && ObjectManager.Get<Obj_AI_Hero>().Count(hero => hero.IsValidTarget(R.Range)) >= ultCount)
-                {
-                    R.CastOnUnit(Player);
-                }
+                    if (useE && E.IsReady())
+                    {
+                        E.Cast(target);
+                    }
 
-                if (Youmuuitem && Player.Distance(target) <= Jqueryluckynumber && Youmuu.IsReady())
-                {
-                    Youmuu.Cast(Player);
-                }
+                    if (useW && W.IsReady())
+                    {
+                        W.Cast(target);
+                    }
+
+                    FightItems();
+                    break;
+
+                case 2:
+
+
+                    if (useE && E.IsReady())
+                    {
+                        E.Cast(target);
+                    }
+
+                    if (R.IsReady() && R.IsInRange(target))
+                    {
+                        R.CastOnUnit(Player);
+                    }
+
+                    if (useW && W.IsReady())
+                    {
+                        W.Cast(target);
+                    }
+
+                    FightItems();
+                    break;
+            }
+
+            if (youmuuitem && Player.Distance(target) <= Jqueryluckynumber && Youmuu.IsReady())
+            {
+                Youmuu.Cast(Player);
             }
 
             //ignite when killable
@@ -322,7 +374,7 @@ namespace ElTalon
 
         #region betaDamage   
 
-        private static float betaDamage(Obj_AI_Base enemy)
+        private static float BetaDamage(Obj_AI_Base enemy)
         {
             var damage = 0d;
 
@@ -365,14 +417,14 @@ namespace ElTalon
 
         private static void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
         {
-            var AntiGapActive = _menu.Item("Antigap").GetValue<bool>();
+            var antiGapActive = _menu.Item("Antigap").GetValue<bool>();
             var target = TargetSelector.GetTarget(W.Range, TargetSelector.DamageType.Physical);
             if (target == null || !target.IsValid)
             {
                 return;
             }
 
-            if (AntiGapActive && E.IsReady() && gapcloser.Sender.Distance(Player) < 700)
+            if (antiGapActive && E.IsReady() && gapcloser.Sender.Distance(Player) < 700)
                 E.Cast(target);
         }
 
@@ -483,6 +535,9 @@ namespace ElTalon
             comboMenu.AddItem(new MenuItem("SmartUlt", "Use smart ult").SetValue(true));
             comboMenu.AddItem(new MenuItem("rcount", "Min target to R >= ")).SetValue(new Slider(1, 1, 5));
             comboMenu.AddItem(new MenuItem("UseIgnite", "Use Ignite in combo when killable").SetValue(true));
+
+            comboMenu.SubMenu("Combo mode").AddItem(new MenuItem("ElTalon.Combo.Mode", "Mode").SetValue(new StringList(new[] { "Default", "R->E->W->Q", "E->R->W->Q" })));
+
             comboMenu.AddItem(new MenuItem("ComboActive", "Combo!").SetValue(new KeyBind(32, KeyBindType.Press)));
 
             comboMenu.SubMenu("Items").AddItem(new MenuItem("UseTiamat", "Use Tiamat").SetValue(true));
@@ -505,11 +560,11 @@ namespace ElTalon
             waveClearMenu.AddItem(new MenuItem("WaveClearQ", "Use Q").SetValue(true));
             waveClearMenu.AddItem(new MenuItem("WaveClearW", "Use W").SetValue(true));
             waveClearMenu.AddItem(new MenuItem("WaveClearE", "Use E").SetValue(false));
-            waveClearMenu.SubMenu("LaneClearMana").AddItem(new MenuItem("LaneClearMana", "[WaveClear] Minimum Mana").SetValue(new Slider(30, 0, 100)));
+            waveClearMenu.SubMenu("Mana").AddItem(new MenuItem("LaneClearMana", "[WaveClear] Minimum Mana").SetValue(new Slider(30, 0, 100)));
             waveClearMenu.AddItem(new MenuItem("fsfsafsaasffsadddd11sss1", ""));
 
             // Settings
-            var settingsMenu = _menu.AddSubMenu(new Menu("SuperSecretSettings", "SuperSecretSettings"));
+            var settingsMenu = _menu.AddSubMenu(new Menu("Misc", "SuperSecretSettings"));
             settingsMenu.AddItem(new MenuItem("Antigap", "[BETA] Use E for gapclosers").SetValue(false));
 
             // item usage
@@ -532,10 +587,6 @@ namespace ElTalon
             dmgAfterComboItem.ValueChanged += delegate (object sender, OnValueChangeEventArgs eventArgs) { Utility.HpBarDamageIndicator.Enabled = eventArgs.GetNewValue<bool>(); };
 
 
-            //Supersecretsettings - soon
-            /*var supersecretsettings = _menu.AddSubMenu(new Menu("SuperSecretSettings", "supersecretsettings"));
-            supersecretsettings.AddItem(new MenuItem("DontEUnderTower", "[SSS] Dont E under tower").SetValue(false));*/
-
             //Here comes the moneyyy, money, money, moneyyyy
             var credits = _menu.AddSubMenu(new Menu("Credits", "jQuery"));
             credits.AddItem(new MenuItem("Paypal", "if you would like to donate via paypal:"));
@@ -543,7 +594,7 @@ namespace ElTalon
 
 
             _menu.AddItem(new MenuItem("422442fsaafs4242f", ""));
-            _menu.AddItem(new MenuItem("422442fsaafsf", "Version: 1.5"));
+            _menu.AddItem(new MenuItem("422442fsaafsf", "Version: 2.0.0.0"));
             _menu.AddItem(new MenuItem("fsasfafsfsafsa", "Made By jQuery"));
 
             _menu.AddToMainMenu();
