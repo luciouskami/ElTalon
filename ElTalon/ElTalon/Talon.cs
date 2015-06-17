@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -277,18 +277,27 @@ namespace ElTalon
             {
                 case 0:
 
+                    if (useE && E.IsReady())
+                    {
+                        E.Cast(target);
+                    }
+
+                    if (Player.Distance(target) <= Player.AttackRange)
+                    {
+                        Player.IssueOrder(GameObjectOrder.AttackUnit, target);
+                    }
+
+                    if (Q.IsReady())
+                    {
+                        Q.Cast(target);
+                    }
+
                     if (useW && W.IsReady())
                     {
                         W.Cast(target);
                     }
 
                     FightItems();
-
-
-                    if (useE && E.IsReady())
-                    {
-                        E.Cast(target);
-                    }
 
                     if (onlyKill && E.IsReady() && rCombo && Q.IsReady() && ObjectManager.Get<Obj_AI_Hero>().Count(aiHero => aiHero.IsValidTarget(R.Range)) >= ultCount)
                     {
@@ -397,7 +406,7 @@ namespace ElTalon
         }
 
         #endregion
-
+        
         //new logic such OP 
         #region GetUltComboDamage   
 
@@ -426,6 +435,7 @@ namespace ElTalon
 
             if (antiGapActive && E.IsReady() && gapcloser.Sender.Distance(Player) < 700)
                 E.Cast(target);
+            ObjectManager.Get<Obj_AI_Base>().Where(obj => obj.Name.Contains("RobotBuddy"));
         }
 
 
@@ -536,7 +546,7 @@ namespace ElTalon
             comboMenu.AddItem(new MenuItem("rcount", "Min target to R >= ")).SetValue(new Slider(1, 1, 5));
             comboMenu.AddItem(new MenuItem("UseIgnite", "Use Ignite in combo when killable").SetValue(true));
 
-            comboMenu.SubMenu("Combo mode").AddItem(new MenuItem("ElTalon.Combo.Mode", "Mode").SetValue(new StringList(new[] { "Default", "R->E->W->Q", "E->R->W->Q" })));
+            comboMenu.SubMenu("Combo mode").AddItem(new MenuItem("ElTalon.Combo.Mode", "Mode").SetValue(new StringList(new[] { "Default [E->AA->Q->W->R]", "R->E->W->Q", "E->R->W->Q" })));
 
             comboMenu.AddItem(new MenuItem("ComboActive", "Combo!").SetValue(new KeyBind(32, KeyBindType.Press)));
 
