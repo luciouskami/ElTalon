@@ -604,7 +604,7 @@ namespace ElTalon
 
 
             _menu.AddItem(new MenuItem("422442fsaafs4242f", ""));
-            _menu.AddItem(new MenuItem("422442fsaafsf", "Version: 2.0.0.0"));
+            _menu.AddItem(new MenuItem("422442fsaafsf", "Version: 2.0.0.1"));
             _menu.AddItem(new MenuItem("fsasfafsfsafsa", "Made By jQuery"));
 
             _menu.AddToMainMenu();
