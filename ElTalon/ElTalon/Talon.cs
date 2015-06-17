@@ -282,7 +282,7 @@ namespace ElTalon
                         E.Cast(target);
                     }
 
-                    if (Player.Distance(target) <= Player.AttackRange)
+                    if (target.IsValid)
                     {
                         Player.IssueOrder(GameObjectOrder.AttackUnit, target);
                     }
