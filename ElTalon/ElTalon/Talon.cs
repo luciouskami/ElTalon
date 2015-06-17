@@ -281,12 +281,10 @@ namespace ElTalon
                     {
                         E.Cast(target);
                     }
-
-                    if (target.IsValid)
+                    FightItems();
+                    if (Player.Distance(target) <= Player.AttackRange)
                     {
-                        Player.IssueOrder(GameObjectOrder.AttackUnit, target);
-                        
-
+                       Player.IssueOrder(GameObjectOrder.AttackUnit, target);
                     }
 
                     if (Q.IsReady())
@@ -300,7 +298,7 @@ namespace ElTalon
                         W.Cast(target);
                     }
 
-                    FightItems();
+                    
 
                     if (onlyKill && E.IsReady() && rCombo && Q.IsReady() && ObjectManager.Get<Obj_AI_Hero>().Count(aiHero => aiHero.IsValidTarget(R.Range)) >= ultCount)
                     {
