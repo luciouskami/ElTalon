@@ -285,11 +285,14 @@ namespace ElTalon
                     if (target.IsValid)
                     {
                         Player.IssueOrder(GameObjectOrder.AttackUnit, target);
+                        FightItems();
+
                     }
 
                     if (Q.IsReady())
                     {
                         Q.Cast(target);
+                        FightItems();
                     }
 
                     if (useW && W.IsReady())
