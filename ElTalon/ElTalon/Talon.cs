@@ -51,6 +51,8 @@ namespace ElTalon
             E = new Spell(SpellSlot.E, 700);
             R = new Spell(SpellSlot.R, 650);
 
+            W.SetSkillshot(0.25f, 75, 2300, false, SkillshotType.SkillshotLine);
+
             SpellList = new List<Spell> { Q, E, W, R };
 
             // Ignite
