@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("ElTalon")]
@@ -12,5 +11,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
 [assembly: Guid("ce0c1871-26ef-47c1-a3e3-97635ac447cd")]
-[assembly: AssemblyVersion("2.0.0.1")]
-[assembly: AssemblyFileVersion("2.0.0.1")]
+[assembly: AssemblyVersion("2.0.0.2")]
+[assembly: AssemblyFileVersion("2.0.0.2")]
