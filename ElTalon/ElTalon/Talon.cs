@@ -111,7 +111,7 @@ namespace ElTalon
             {
                 if (qWaveClear && Q.IsReady() && target.IsValidTarget())
                 {
-                    Q.Cast(Player);
+                    Q.Cast();
                 }
 
                 if (wWaveClear && W.IsReady() && target.IsValidTarget())
@@ -148,7 +148,7 @@ namespace ElTalon
             {
                 if (qWaveClear && Q.IsReady() && minion.IsValidTarget())
                 {
-                    Q.Cast(Player);
+                    Q.Cast();
                 }
 
                 if (wWaveClear && W.IsReady() && minion.IsValidTarget())
@@ -195,7 +195,7 @@ namespace ElTalon
                 {                             
                    if (spell.Slot == SpellSlot.Q && qHarass && Q.IsReady() && Player.Distance(target) <= Player.AttackRange && Q.IsReady())
                     {   
-                        Q.Cast(Player);
+                        Q.Cast();
                     }
 
                     if (spell.Slot == SpellSlot.W && wHarass && W.IsReady())
@@ -297,7 +297,7 @@ namespace ElTalon
                     {
                         if (comboDamage >= target.Health)
                         {
-                            R.CastOnUnit(Player);
+                            R.Cast();
                         }
                     }
 
@@ -305,13 +305,13 @@ namespace ElTalon
                     {
                         if (getUltComboDamage >= target.Health)
                         {
-                            R.CastOnUnit(Player);
+                            R.Cast();
                         }
                     }
 
                     if (!onlyKill && E.IsReady() && rCombo && Q.IsReady() && ObjectManager.Get<Obj_AI_Hero>().Count(aiHero => aiHero.IsValidTarget(R.Range)) >= ultCount)
                     {
-                        R.CastOnUnit(Player);
+                        R.Cast();
                     }
 
 
@@ -322,7 +322,7 @@ namespace ElTalon
 
                     if (R.IsReady() && R.IsInRange(target))
                     {
-                        R.CastOnUnit(Player);
+                        R.Cast();
                     }
 
                     if (useE && E.IsReady())
@@ -348,7 +348,7 @@ namespace ElTalon
 
                     if (R.IsReady() && R.IsInRange(target))
                     {
-                        R.CastOnUnit(Player);
+                        R.Cast();
                     }
 
                     if (useW && W.IsReady())
@@ -362,7 +362,7 @@ namespace ElTalon
 
             if (youmuuitem && Player.Distance(target) <= 400f && youmuu.IsReady())
             {
-                youmuu.Cast(Player);
+                youmuu.Cast();
             }
 
             //ignite when killable
