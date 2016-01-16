@@ -11,16 +11,13 @@ using Color = System.Drawing.Color;
 
 namespace ElTalon
 {
-    /// <summary>
-    ///     Handle all stuff what is going on with Talon.
-    /// </summary>
+
     internal class Talon
     {
 
-        private static String hero = "Talon";
         private static Obj_AI_Hero Player { get { return ObjectManager.Player; } }
-        public static Menu _menu;
-        private static Orbwalking.Orbwalker _orbwalker;
+        public static Menu Menu;
+        private static Orbwalking.Orbwalker orbwalker;
         private static Spell Q, W, E, R;
         private static List<Spell> SpellList;
 
@@ -38,10 +35,9 @@ namespace ElTalon
 
         public static void Game_OnGameLoad(EventArgs args)
         {
-            if (ObjectManager.Player.BaseSkinName != "Talon")
+            if (ObjectManager.Player.CharData.BaseSkinName != "Talon")
                 return;
 
-            Notifications.AddNotification("ElTalon by jQuery 2.0.0.0", 8000);
 
             #region Spell Data
 
@@ -81,7 +77,7 @@ namespace ElTalon
 
         private static void OnGameUpdate(EventArgs args)
         {
-            switch (_orbwalker.ActiveMode)
+            switch (orbwalker.ActiveMode)
             {
                 case Orbwalking.OrbwalkingMode.Combo:
                     Combo();
@@ -104,15 +100,15 @@ namespace ElTalon
 
         private static void JungleClear()
         {
-            var qWaveClear = _menu.Item("WaveClearQ").GetValue<bool>();
-            var wWaveClear = _menu.Item("WaveClearW").GetValue<bool>();
-            var eWaveClear = _menu.Item("WaveClearE").GetValue<bool>();
-            var hydraClear = _menu.Item("HydraClear").GetValue<bool>();
-            var tiamatClear = _menu.Item("TiamatClear").GetValue<bool>();
+            var qWaveClear = Menu.Item("WaveClearQ").GetValue<bool>();
+            var wWaveClear = Menu.Item("WaveClearW").GetValue<bool>();
+            var eWaveClear = Menu.Item("WaveClearE").GetValue<bool>();
+            var hydraClear = Menu.Item("HydraClear").GetValue<bool>();
+            var tiamatClear = Menu.Item("TiamatClear").GetValue<bool>();
 
             var target = MinionManager.GetMinions(Player.Position, 700, MinionTypes.All, MinionTeam.Neutral, MinionOrderTypes.MaxHealth).FirstOrDefault();
 
-            if (Player.ManaPercent >= _menu.Item("LaneClearMana").GetValue<Slider>().Value)
+            if (Player.ManaPercent >= Menu.Item("LaneClearMana").GetValue<Slider>().Value)
             {
                 if (qWaveClear && Q.IsReady() && target.IsValidTarget())
                 {
@@ -142,14 +138,14 @@ namespace ElTalon
             var minion = MinionManager.GetMinions(Player.ServerPosition, W.Range).FirstOrDefault();
             if (minion == null || minion.Name.ToLower().Contains("ward")) return;
 
-            var qWaveClear = _menu.Item("WaveClearQ").GetValue<bool>();
-            var wWaveClear = _menu.Item("WaveClearW").GetValue<bool>();
-            var eWaveClear = _menu.Item("WaveClearE").GetValue<bool>();
-            var hydraClear = _menu.Item("HydraClear").GetValue<bool>();
-            var tiamatClear = _menu.Item("TiamatClear").GetValue<bool>();
+            var qWaveClear = Menu.Item("WaveClearQ").GetValue<bool>();
+            var wWaveClear = Menu.Item("WaveClearW").GetValue<bool>();
+            var eWaveClear = Menu.Item("WaveClearE").GetValue<bool>();
+            var hydraClear = Menu.Item("HydraClear").GetValue<bool>();
+            var tiamatClear = Menu.Item("TiamatClear").GetValue<bool>();
             var minions = MinionManager.GetMinions(Player.ServerPosition, W.Range, MinionTypes.All, MinionTeam.NotAlly);
 
-            if (Player.ManaPercent >= _menu.Item("LaneClearMana").GetValue<Slider>().Value)
+            if (Player.ManaPercent >= Menu.Item("LaneClearMana").GetValue<Slider>().Value)
             {
                 if (qWaveClear && Q.IsReady() && minion.IsValidTarget())
                 {
@@ -190,13 +186,13 @@ namespace ElTalon
                 return;
             }
 
-            var qHarass = _menu.Item("HarassQ").GetValue<bool>();
-            var wHarass = _menu.Item("HarassW").GetValue<bool>();
-            var eHarass = _menu.Item("HarassE").GetValue<bool>();
+            var qHarass = Menu.Item("HarassQ").GetValue<bool>();
+            var wHarass = Menu.Item("HarassW").GetValue<bool>();
+            var eHarass = Menu.Item("HarassE").GetValue<bool>();
 
             foreach (var spell in SpellList.Where(y => y.IsReady()))
             {
-                if (Player.ManaPercent >= _menu.Item("HarassMana").GetValue<Slider>().Value)
+                if (Player.ManaPercent >= Menu.Item("HarassMana").GetValue<Slider>().Value)
                 {                             
                    if (spell.Slot == SpellSlot.Q && qHarass && Q.IsReady() && Player.Distance(target) <= Player.AttackRange && Q.IsReady())
                     {   
@@ -224,8 +220,8 @@ namespace ElTalon
         {
             var target = TargetSelector.GetTarget(W.Range, TargetSelector.DamageType.Physical);
 
-            var tiamatItem = _menu.Item("UseTiamat").GetValue<bool>();
-            var hydraItem = _menu.Item("UseHydra").GetValue<bool>();
+            var tiamatItem = Menu.Item("UseTiamat").GetValue<bool>();
+            var hydraItem = Menu.Item("UseHydra").GetValue<bool>();
    
             if (Items.CanUseItem(3074) && hydraItem && Player.Distance(target) <= Jqueryluckynumber)
                 Items.UseItem(3074);
@@ -238,7 +234,7 @@ namespace ElTalon
 
         private static void AfterAttack(AttackableUnit unit, AttackableUnit target)
         {
-            switch (_orbwalker.ActiveMode)
+            switch (orbwalker.ActiveMode)
             {
                 case Orbwalking.OrbwalkingMode.Combo:
                     if (unit.IsMe && Q.IsReady() && target is Obj_AI_Hero)
@@ -260,20 +256,19 @@ namespace ElTalon
                 return;
             }
 
-            var useW = _menu.Item("WCombo").GetValue<bool>();
-            var useE = _menu.Item("ECombo").GetValue<bool>();
-            var rCombo = _menu.Item("RCombo").GetValue<bool>();
-            var onlyKill = _menu.Item("RWhenKill").GetValue<bool>();
-            var smartUlt = _menu.Item("SmartUlt").GetValue<bool>();
-            var youmuuitem = _menu.Item("UseYoumuu").GetValue<bool>();
-            var ultCount = _menu.Item("rcount").GetValue<Slider>().Value;
+            var useW = Menu.Item("WCombo").GetValue<bool>();
+            var useE = Menu.Item("ECombo").GetValue<bool>();
+            var rCombo = Menu.Item("RCombo").GetValue<bool>();
+            var onlyKill = Menu.Item("RWhenKill").GetValue<bool>();
+            var smartUlt = Menu.Item("SmartUlt").GetValue<bool>();
+            var youmuuitem = Menu.Item("UseYoumuu").GetValue<bool>();
+            var ultCount = Menu.Item("rcount").GetValue<Slider>().Value;
 
             var comboDamage = GetComboDamage(target);
             var getUltComboDamage = GetUltComboDamage(target);
-           // var smarterult = BetaDamage(target);
 
 
-            var ultType = _menu.Item("ElTalon.Combo.Mode").GetValue<StringList>().SelectedIndex;
+            var ultType = Menu.Item("ElTalon.Combo.Mode").GetValue<StringList>().SelectedIndex;
 
             switch (ultType)
             {
@@ -371,16 +366,12 @@ namespace ElTalon
 
             if (youmuuitem && Player.Distance(target) <= Jqueryluckynumber && Youmuu.IsReady())
             {
-<<<<<<< HEAD
-                youmuu.Cast();
-=======
-                Youmuu.Cast(Player);
->>>>>>> parent of c482ed5... Talon
+                Youmuu.Cast();
             }
 
             //ignite when killable
             if (Player.Distance(target) <= 600 && IgniteDamage(target) >= target.Health &&
-                _menu.Item("UseIgnite").GetValue<bool>())
+                Menu.Item("UseIgnite").GetValue<bool>())
             {
                 Player.Spellbook.CastSpell(Ignite, target);
             }
@@ -433,7 +424,7 @@ namespace ElTalon
 
         private static void AntiGapcloser_OnEnemyGapcloser(ActiveGapcloser gapcloser)
         {
-            var antiGapActive = _menu.Item("Antigap").GetValue<bool>();
+            var antiGapActive = Menu.Item("Antigap").GetValue<bool>();
             var target = TargetSelector.GetTarget(W.Range, TargetSelector.DamageType.Physical);
             if (target == null || !target.IsValid)
             {
@@ -442,7 +433,6 @@ namespace ElTalon
 
             if (antiGapActive && E.IsReady() && gapcloser.Sender.Distance(Player) < 700)
                 E.Cast(target);
-            ObjectManager.Get<Obj_AI_Base>().Where(obj => obj.Name.Contains("RobotBuddy"));
         }
 
 
@@ -496,21 +486,21 @@ namespace ElTalon
             if (Math.Abs(vDefaultRange) < 0.00001)
                 vDefaultRange = Q.Range;
 
-            if (!_menu.Item("AssassinActive").GetValue<bool>())
+            if (!Menu.Item("AssassinActive").GetValue<bool>())
                 return TargetSelector.GetTarget(vDefaultRange, vDefaultDamageType);
 
-            var assassinRange = _menu.Item("AssassinSearchRange").GetValue<Slider>().Value;
+            var assassinRange = Menu.Item("AssassinSearchRange").GetValue<Slider>().Value;
 
             var vEnemy =
                 ObjectManager.Get<Obj_AI_Hero>()
                     .Where(
                         enemy =>
                             enemy.Team != ObjectManager.Player.Team && !enemy.IsDead && enemy.IsVisible &&
-                            _menu.Item("Assassin" + enemy.ChampionName) != null &&
-                            _menu.Item("Assassin" + enemy.ChampionName).GetValue<bool>() &&
+                            Menu.Item("Assassin" + enemy.ChampionName) != null &&
+                            Menu.Item("Assassin" + enemy.ChampionName).GetValue<bool>() &&
                             ObjectManager.Player.Distance(enemy) < assassinRange);
 
-            if (_menu.Item("AssassinSelectOption").GetValue<StringList>().SelectedIndex == 1)
+            if (Menu.Item("AssassinSelectOption").GetValue<StringList>().SelectedIndex == 1)
             {
                 vEnemy = (from vEn in vEnemy select vEn).OrderByDescending(vEn => vEn.MaxHealth);
             }
@@ -528,20 +518,20 @@ namespace ElTalon
 
         private static void InitializeMenu()
         {
-            _menu = new Menu("ElTalon", hero, true);
+            Menu = new Menu("ElTalon", "Talon", true);
 
             //Orbwalker
             var orbwalkerMenu = new Menu("Orbwalker", "orbwalker");
-            _orbwalker = new Orbwalking.Orbwalker(orbwalkerMenu);
-            _menu.AddSubMenu(orbwalkerMenu);
+            orbwalker = new Orbwalking.Orbwalker(orbwalkerMenu);
+            Menu.AddSubMenu(orbwalkerMenu);
 
             //TargetSelector
             var targetSelector = new Menu("Target Selector", "TargetSelector");
             TargetSelector.AddToMenu(targetSelector);
-            _menu.AddSubMenu(targetSelector);
+            Menu.AddSubMenu(targetSelector);
 
             //Combo
-            var comboMenu = _menu.AddSubMenu(new Menu("Combo", "Combo"));
+            var comboMenu = Menu.AddSubMenu(new Menu("Combo", "Combo"));
             comboMenu.AddItem(new MenuItem("fsfsafsaasffsadddd111dsasd", ""));
             comboMenu.AddItem(new MenuItem("QCombo", "Use Q").SetValue(true));
             comboMenu.AddItem(new MenuItem("WCombo", "Use W").SetValue(true));
@@ -562,7 +552,7 @@ namespace ElTalon
             comboMenu.SubMenu("Items").AddItem(new MenuItem("UseYoumuu", "Use Youmuu").SetValue(true));
 
             //Harass
-            var harassMenu = _menu.AddSubMenu(new Menu("Harass", "H"));
+            var harassMenu = Menu.AddSubMenu(new Menu("Harass", "H"));
             harassMenu.AddItem(new MenuItem("fsfsafsaasffsadddd", ""));
             harassMenu.AddItem(new MenuItem("HarassQ", "Use Q").SetValue(true));
             harassMenu.AddItem(new MenuItem("HarassW", "Use W").SetValue(true));
@@ -572,7 +562,7 @@ namespace ElTalon
             harassMenu.AddItem(new MenuItem("HarassActive", "Harass!").SetValue(new KeyBind("C".ToCharArray()[0], KeyBindType.Press)));
 
             //Waveclear
-            var waveClearMenu = _menu.AddSubMenu(new Menu("WaveClear", "waveclear"));
+            var waveClearMenu = Menu.AddSubMenu(new Menu("WaveClear", "waveclear"));
             waveClearMenu.AddItem(new MenuItem("fsfsafsaasffsadddd111", ""));
             waveClearMenu.AddItem(new MenuItem("WaveClearQ", "Use Q").SetValue(true));
             waveClearMenu.AddItem(new MenuItem("WaveClearW", "Use W").SetValue(true));
@@ -581,7 +571,7 @@ namespace ElTalon
             waveClearMenu.AddItem(new MenuItem("fsfsafsaasffsadddd11sss1", ""));
 
             // Settings
-            var settingsMenu = _menu.AddSubMenu(new Menu("Misc", "SuperSecretSettings"));
+            var settingsMenu = Menu.AddSubMenu(new Menu("Misc", "SuperSecretSettings"));
             settingsMenu.AddItem(new MenuItem("Antigap", "[BETA] Use E for gapclosers").SetValue(false));
 
             // item usage
@@ -590,7 +580,7 @@ namespace ElTalon
             waveClearMenu.AddItem(new MenuItem("WaveClearActive", "WaveClear!").SetValue(new KeyBind("V".ToCharArray()[0], KeyBindType.Press)));
 
             //Misc
-            var miscMenu = _menu.AddSubMenu(new Menu("Drawings", "Misc"));
+            var miscMenu = Menu.AddSubMenu(new Menu("Drawings", "Misc"));
             miscMenu.AddItem(new MenuItem("ElTalon.Drawingsoff", "Drawings off").SetValue(false));
             miscMenu.AddItem(new MenuItem("ElTalon.DrawW", "Draw W").SetValue(new Circle()));
             miscMenu.AddItem(new MenuItem("ElTalon.DrawE", "Draw E").SetValue(new Circle()));
@@ -605,16 +595,16 @@ namespace ElTalon
 
 
             //Here comes the moneyyy, money, money, moneyyyy
-            var credits = _menu.AddSubMenu(new Menu("Credits", "jQuery"));
+            var credits = Menu.AddSubMenu(new Menu("Credits", "jQuery"));
             credits.AddItem(new MenuItem("Paypal", "if you would like to donate via paypal:"));
             credits.AddItem(new MenuItem("Email", "info@zavox.nl"));
 
 
-            _menu.AddItem(new MenuItem("422442fsaafs4242f", ""));
-            _menu.AddItem(new MenuItem("422442fsaafsf", "Version: 2.0.0.1"));
-            _menu.AddItem(new MenuItem("fsasfafsfsafsa", "Made By jQuery"));
+            Menu.AddItem(new MenuItem("422442fsaafs4242f", ""));
+            Menu.AddItem(new MenuItem("422442fsaafsf", "Version: 2.0.0.1"));
+            Menu.AddItem(new MenuItem("fsasfafsfsafsa", "Made By jQuery"));
 
-            _menu.AddToMainMenu();
+            Menu.AddToMainMenu();
         }
 
         #endregion
@@ -623,10 +613,10 @@ namespace ElTalon
 
         private static void Drawing_OnDraw(EventArgs args)
         {
-            var drawOff = _menu.Item("ElTalon.Drawingsoff").GetValue<bool>();
-            var drawE = _menu.Item("ElTalon.DrawE").GetValue<Circle>();
-            var drawW = _menu.Item("ElTalon.DrawW").GetValue<Circle>();
-            var drawR = _menu.Item("ElTalon.DrawR").GetValue<Circle>();
+            var drawOff = Menu.Item("ElTalon.Drawingsoff").GetValue<bool>();
+            var drawE = Menu.Item("ElTalon.DrawE").GetValue<Circle>();
+            var drawW = Menu.Item("ElTalon.DrawW").GetValue<Circle>();
+            var drawR = Menu.Item("ElTalon.DrawR").GetValue<Circle>();
 
             if (drawOff)
                 return;
